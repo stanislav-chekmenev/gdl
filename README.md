@@ -37,8 +37,11 @@ Other resources can be found inside corresponding Colabs.
 
 #### Day 2:
 
-- TBA
+- [Colab 0 - Point cloud semantic segmentation](https://colab.research.google.com/drive/1Y8zBer1sCjX3aOa8e5T3opto54t-nL3v?usp=sharing): A tutorial on point 
+ segmentation, using PointNet++. 
 
 #### Day 3:
 
-- TBA
+- [Colab 0 - Equivariant Graph Neural Networks](https://colab.research.google.com/drive/13PH-33bu5g0J-DvcfHgiFXiN9oXpIK-G?usp=sharing): Practical exercises
+for understanding invariance and equivariance in GNNs.
+
