@@ -37,7 +37,8 @@ Other resources can be found inside corresponding Colabs.
 
 #### Day 2:
 
-
-
+- [Colab 0 - Point Cloud Semantic Segmentation](https://colab.research.google.com/drive/1Y8zBer1sCjX3aOa8e5T3opto54t-nL3v?usp=sharing): Semantic segmentation on point clouds with GNNs.
 
 #### Day 3:
+
+- [Colab 0 - GDL & Equivariant Graph Neural Networks](https://colab.research.google.com/drive/13PH-33bu5g0J-DvcfHgiFXiN9oXpIK-G?usp=sharing): Summarization and recap of the main principles of GDL in relation to GNNs.

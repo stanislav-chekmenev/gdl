@@ -1,6 +1,6 @@
 # Point cloud segmentation
 
-# Exercise 1.
+# ++++++++++++++ START OF EXERCISE 1  ++++++++++++++ 
 import open3d as o3d
 import numpy as np
 import plotly.graph_objects as go
@@ -113,5 +113,38 @@ permuted_bunny_points = np.concatenate([permuted_bunny_points, colors.reshape(-1
 
 # Visualize both
 visualize_point_clouds(bunny_points, permuted_bunny_points, "Original Bunny", "Permuted Bunny", show_both=True)
+# ++++++++++++++ END OF EXERCISE 1  ++++++++++++++ 
 
 
+# ++++++++++++++ START OF EXERCISE 2  ++++++++++++++ 
+
+# Create a small dataset
+fixed_points_transform = FixedPoints(num=10000, replace=False)
+tiny_kitti = TinyVKittiDataset(root="data/train", size=2, transform=fixed_points_transform, log=False)
+data = tiny_kitti[0]
+
+# Run FPS to sample 10 centroids
+fps_idx = fps(data.pos, ratio=0.01)
+
+# Get src and dest node indices
+row_knn, col_knn = knn(x=data.pos, y=data.pos[fps_idx], k=32)
+row_radius, col_radius = radius(x=data.pos, y=data.pos[fps_idx], r=0.1, max_num_neighbors=32)
+
+# Create edge_index tensors
+edge_index_knn = torch.stack([col_knn, fps_idx[row_knn]], dim=0)
+edge_index_bq = torch.stack([col_radius, fps_idx[row_radius]], dim=0)
+
+
+
+# Visualize the graphs
+visualize(
+    point_cloud_graph1=data,
+    point_cloud_graph2=data,
+    edge_indices=[edge_index_knn, edge_index_bq],
+    show_both=True,
+    name1="kNN graph",
+    name2="BQ graph",
+)
+
+
+# ++++++++++++++ END OF EXERCISE 2  ++++++++++++++ 
