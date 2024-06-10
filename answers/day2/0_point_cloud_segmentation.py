@@ -1,13 +1,5 @@
-# Point cloud segmentation
-
 # ++++++++++++++ START OF EXERCISE 1  ++++++++++++++ 
-import open3d as o3d
-import numpy as np
-import plotly.graph_objects as go
-
-from plotly.subplots import make_subplots
-
-# Run the next cell in Colab to download the bunny mesh
+# Run the next cell in Colab to download the bunny mesh, uncomment the #-symbol
 #!wget https://graphics.stanford.edu/~mdfisher/Data/Meshes/bunny.obj
 
 # Get the bunny mesh
@@ -113,7 +105,8 @@ permuted_bunny_points = np.concatenate([permuted_bunny_points, colors.reshape(-1
 
 # Visualize both
 visualize_point_clouds(bunny_points, permuted_bunny_points, "Original Bunny", "Permuted Bunny", show_both=True)
-# ++++++++++++++ END OF EXERCISE 1  ++++++++++++++ 
+
+# ++++++++++++++ END OF EXERCISE 1  ++++++++++++++++ 
 
 
 # ++++++++++++++ START OF EXERCISE 2  ++++++++++++++ 
@@ -146,5 +139,71 @@ visualize(
     name2="BQ graph",
 )
 
+# ++++++++++++++ END OF EXERCISE 2  ++++++++++++++++ 
 
-# ++++++++++++++ END OF EXERCISE 2  ++++++++++++++ 
+
+# ++++++++++++++ START OF EXERCISE 3  ++++++++++++++ 
+
+# Compose a series of rotations around all 3 axes
+sample_random_rotate = Compose([
+    FixedPoints(num=10_000, replace=False),
+    RandomRotate(degrees=30, axis=0),
+    RandomRotate(degrees=30, axis=1),
+    RandomRotate(degrees=30, axis=2),
+])
+
+# Create the dataset
+rotated_test_dataset = TinyVKittiDataset(root="data/test/", size=1, transform=sample_random_rotate)
+
+# Visualize point clouds
+data_rotated = rotated_test_dataset[0]
+data_original = test_dataset[0]
+visualize(
+    point_cloud_graph1=data_original,
+    point_cloud_graph2=data_rotated,
+    name1="Original Point Cloud",
+    name2="Rotated Point Cloud",
+    show_both=True
+)
+
+# Run inference and compute the accuracy
+rotated_loader = DataLoader(rotated_test_dataset, batch_size=1, shuffle=False)
+
+# Run inference
+print(f"Test accurcy for the rotated point cloud: {test(rotated_loader)}")
+
+# ++++++++++++++ END OF EXERCISE 3  ++++++++++++++++
+
+
+# ++++++++++++++ START OF EXERCISE 4  ++++++++++++++ 
+
+class PPFPointNetPP(torch.nn.Module):
+    def __init__(self, num_classes):
+        super().__init__()
+        seed(12345)
+        # Dim 4 is for the PPF features (r^2, angle_1, angle_2, angle_3)
+        self.sa1_module = PPFSAModule(ratio=0.2, r=0.2, nn=MLP([4, 32, 32]))
+        self.sa2_module = PPFSAModule(ratio=0.25, r=0.4, nn=MLP([32 + 4, 32, 64]))
+        # Extra 3 for the normals
+        self.sa3_module = PPFGlobalSAModule(MLP([64 + 3 + 3, 64, 128]))
+
+        self.fp3_module = PPFFPModule(2, MLP([128 + 64, 64]))
+        self.fp2_module = PPFFPModule(3, MLP([64 + 32, 32]))
+        self.fp1_module = PPFFPModule(3, MLP([32, 128]))
+
+        self.mlp = MLP([128, 64, num_classes], dropout=0.5, norm=None)
+
+    def forward(self, data):
+        # Adding normals
+        sa0_out = (data.x, data.pos, data.norm, data.batch)
+        sa1_out = self.sa1_module(*sa0_out)
+        sa2_out = self.sa2_module(*sa1_out)
+        sa3_out = self.sa3_module(*sa2_out)
+
+        fp3_out = self.fp3_module(*sa3_out, *sa2_out)
+        fp2_out = self.fp2_module(*fp3_out, *sa1_out)
+        x, _, _, _ = self.fp1_module(*fp2_out, *sa0_out)
+
+        return self.mlp(x)
+
+# ++++++++++++++ END OF EXERCISE 4  ++++++++++++++++
