@@ -3,7 +3,7 @@
 
 class TinyVKittiDataset(Dataset):
 
-   def __init__(self, root: str, size, pre_transofrm: callable=NormalizeScale(), transform: callable=None, **kwargs):
+    def __init__(self, root: str, size, pre_transofrm: callable=NormalizeScale(), transform: callable=None, **kwargs):
        """TinyVKitti Dataset class.
        Args:
            root (str): Root directory where the dataset should be saved.
@@ -24,18 +24,18 @@ class TinyVKittiDataset(Dataset):
        self.size = size
        super().__init__(root, pre_transform=pre_transofrm, transform=transform, **kwargs)
       
-   @property
-   def raw_file_names(self) -> list[str]:
+    @property
+    def raw_file_names(self) -> list[str]:
        points = [f'frame_{i}.npy' for i in range(self.size)]
        return points
 
 
-   @property
-   def processed_file_names(self) -> list[str]:
+    @property
+    def processed_file_names(self) -> list[str]:
        graphs = [f'graph_{i}.pt' for i in range(self.size)]
        return graphs
   
-   def process(self) -> None:
+    def process(self) -> None:
        # Read each point cloud file and process it
        for num, raw_file_name in enumerate(self.raw_file_names):
            print(f'Processing {num}th file')
@@ -76,8 +76,15 @@ class TinyVKittiDataset(Dataset):
            torch.save(data, os.path.join(self.processed_dir, f'graph_{num}.pt'))
 
 
-   def download(self) -> None:
+    def download(self) -> None:
        raise NotImplementedError("Specify custom logic to download your dataset")
+   
+    def len(self):
+        return len(self.processed_file_names)
+
+    def get(self, idx):
+        data = torch.load(os.path.join(self.processed_dir, f'graph_{idx}.pt'))
+        return data
 
 
 # +++++++++++++++++++ PointNet Layer +++++++++++++++++++
