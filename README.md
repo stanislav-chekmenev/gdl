@@ -19,7 +19,7 @@ of machine learning on graphs.
 Cambridge Master's program for Representation Learning on Graphs.
 - [E(n) Equivariant Graph Neural Networks](https://arxiv.org/abs/2102.09844): A paper that introduces E(n) equivariant GNNs, extending
 the notion of SO(3) equivariance.
-- [PointNet++](https://arxiv.org/abs/1706.02413): A pioneering paper, introducing the way to work use GNNs with point clouds.
+- [PointNet++](https://arxiv.org/abs/1706.02413): A pioneering paper, introducing the way to use GNNs with point clouds.
 - [Pytorch Geometric](https://www.pyg.org/): One of the best libraries for working with graphs.
 
 Other resources can be found inside corresponding Colabs.
