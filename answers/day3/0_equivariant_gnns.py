@@ -29,7 +29,7 @@ class CoordMPNNModel(MPNNModel):
        out = self.lin_pred(h_graph)
        return out.view(-1)
    
-coord_mpnn = CoordMPNNModel(num_layers=4, edge_dim=64, in_dim=11, emb_dim=4, out_dim=1)
+coord_mpnn = CoordMPNNModel(num_layers=4, emb_dim=64, in_dim=11, edge_dim=4, out_dim=1)
 
 # ++++++++++++++ END OF EXERCISE 1  +++++++++++++++ 
 
@@ -219,41 +219,36 @@ class InvariantMPNNModel(MPNNModel):
         out = self.lin_pred(h_graph) # (batch_size, d) -> (batch_size, 1)
 
         return out.view(-1)
+    
+
+inv_layer = InvariantMPNNLayer(emb_dim=11, edge_dim=4, aggr="add")
+inv_mpnn = InvariantMPNNModel(num_layers=4, emb_dim=64, in_dim=11, edge_dim=4, out_dim=1)
 
 # ++++++++++++++ END OF EXERCISE 3  +++++++++++++++ 
 
 # ++++++++++++++ START OF EXERCISE 4 ++++++++++++++ 
 
-def rot_trans_invariance_unit_test(module, dataloader):
-    """Unit test for checking whether a module (GNN model/layer) is 
-    rotation and translation invariant.
+def rot_trans_equivariance_unit_test(module, dataloader):
+    """Unit test for checking whether a module (GNN layer) is 
+    rotation and translation equivariant.
     """
     it = iter(dataloader)
     data = next(it)
+    out_1, pos_1 = module(data.x, data.pos, data.edge_index, data.edge_attr)
 
-    # Forward pass on original example
-    # Note: A conditional forward pass allows to run the same unit test for both the GNN model as well as the layer.
-    if isinstance(module, MPNNModel):
-        out_1 = module(data)
-    else: # if ininstance(module, MessagePassing):
-        out_1 = module(data.x, data.pos, data.edge_index, data.edge_attr)
+    Q = random_rotation_matrix(dim=3)
+    t = torch.rand(3)
 
-    # Get a random rotation matrix
-    Q = random_rotation_matrix(dim=3) 
-    # Get a random translation
-    t = torch.rand(3) 
-
-    # Rotate and translate the positions
-    data.pos = (data.pos + t) @ Q
+    # Rotate and translate the postitions 
+    data.pos = data.pos @ Q + t
 
     # Forward pass on rotated + translated example
-    if isinstance(module, MPNNModel):
-        out_2 = module(data)
-    else: # if ininstance(module, MessagePassing):
-        out_2 = module(data.x, data.pos, data.edge_index, data.edge_attr)
+    out_2, pos_2 = module(data.x, data.pos, data.edge_index, data.edge_attr)
 
-    # Check whether output varies after applying transformations
-    return torch.allclose(out_1, out_2, atol=1e-04)
+    # Rotate and translate the original output position embeddings
+    pos_1_rot_t = pos_1 @ Q + t
+    
+    return torch.allclose(out_1, out_2, atol=1e-04), torch.allclose(pos_1_rot_t, pos_2, atol=1e-04)
 
 # ++++++++++++++ END OF EXERCISE 4  +++++++++++++++ 
 

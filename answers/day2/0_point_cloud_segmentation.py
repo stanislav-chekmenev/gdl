@@ -46,7 +46,8 @@ bunny_points[:, :-1] = bunny_points[:, :-1] @ \
     R_axis(-3 * np.pi / 4, axis='y') @ \
     R_axis(-np.pi / 2, axis='x')
 
-  # Visualization function
+
+# Visualization function
 def visualize_point_clouds(
       points1: np.ndarray,
       points2: np.ndarray,
