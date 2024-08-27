@@ -121,12 +121,12 @@ data = tiny_kitti[0]
 fps_idx = fps(data.pos, ratio=0.01)
 
 # Get src and dest node indices
-row_knn, col_knn = knn(x=data.pos, y=data.pos[fps_idx], k=32)
-row_radius, col_radius = radius(x=data.pos, y=data.pos[fps_idx], r=0.1, max_num_neighbors=32)
+dest_idx_knn, src_idx_knn = knn(x=data.pos, y=data.pos[fps_idx], k=32)
+dest_idx_radius, src_idx_radius = radius(x=data.pos, y=data.pos[fps_idx], r=0.1, max_num_neighbors=32)
 
 # Create edge_index tensors
-edge_index_knn = torch.stack([col_knn, fps_idx[row_knn]], dim=0)
-edge_index_bq = torch.stack([col_radius, fps_idx[row_radius]], dim=0)
+edge_index_knn = torch.stack([src_idx_knn, fps_idx[dest_idx_knn]], dim=0)
+edge_index_bq = torch.stack([src_idx_radius, fps_idx[dest_idx_radius]], dim=0)
 
 
 

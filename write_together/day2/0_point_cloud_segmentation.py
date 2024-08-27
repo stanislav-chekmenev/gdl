@@ -63,7 +63,7 @@ class TinyVKittiDataset(Dataset):
 
            # Create a graph
            pos = torch.tensor(pos, dtype=torch.float)
-           y = torch.tensor(y, dtype=torch.float)
+           y = torch.tensor(y, dtype=torch.int)
            data = Data(pos=pos, y=y)
 
 
@@ -138,8 +138,8 @@ class SAModule(torch.nn.Module):
 
 
        # Group the neighbours of the centroids for each graph in the batch
-       row, col = radius(pos, pos[idx], self.r, batch, batch[idx], max_num_neighbors=32)
-       edge_index = torch.stack([col, row], dim=0)
+       dest_idx, src_idx = radius(pos, pos[idx], self.r, batch, batch[idx], max_num_neighbors=32)
+       edge_index = torch.stack([src_idx, dest_idx], dim=0)
 
 
        # See if we have any hidden node features that we received from the previous layer
@@ -295,8 +295,8 @@ class PPFSAModule(torch.nn.Module):
            self, x: Optional[torch.Tensor], pos: torch.Tensor, normal: torch.Tensor, batch: torch.Tensor
        ) -> Tuple[torch.Tensor, ...]:
        idx = fps(pos, batch, ratio=self.ratio)
-       row, col = radius(pos, pos[idx], self.r, batch, batch[idx], max_num_neighbors=32)
-       edge_index = torch.stack([col, row], dim=0)
+       dest_idx, src_idx = radius(pos, pos[idx], self.r, batch, batch[idx], max_num_neighbors=32)
+       edge_index = torch.stack([src_idx, dest_idx], dim=0)
        x_dest = None if x is None else x[idx]
        # Here we add normals!
        x = self.conv((x, x_dest), (pos, pos[idx]), (normal, normal[idx]), edge_index)
