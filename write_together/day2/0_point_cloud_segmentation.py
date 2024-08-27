@@ -188,7 +188,7 @@ class FPModule(torch.nn.Module):
            self, x: torch.Tensor, pos: torch.Tensor, batch: torch.Tensor, x_skip: torch.Tensor,
            pos_skip: torch.Tensor, batch_skip: torch.Tensor) -> Tuple[torch.Tensor, ...]:
        # Perform the interpolation
-       x = knn_interpolate(x, pos, pos_skip, batch, batch_skip, k=self.k)
+       x = knn_interpolate(x=x, pos_x=pos, pos_y=pos_skip, batch_x=batch, batch_y=batch_skip, k=self.k)
 
 
        # Check if there was any previous SA layer output to concatenate with

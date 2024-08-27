@@ -128,8 +128,6 @@ dest_idx_radius, src_idx_radius = radius(x=data.pos, y=data.pos[fps_idx], r=0.1,
 edge_index_knn = torch.stack([src_idx_knn, fps_idx[dest_idx_knn]], dim=0)
 edge_index_bq = torch.stack([src_idx_radius, fps_idx[dest_idx_radius]], dim=0)
 
-
-
 # Visualize the graphs
 visualize(
     point_cloud_graph1=data,
