@@ -118,7 +118,7 @@ tiny_kitti = TinyVKittiDataset(root="data/train", size=2, transform=fixed_points
 data = tiny_kitti[0]
 
 # Run FPS to sample 10 centroids
-fps_idx = fps(data.pos, ratio=0.01)
+fps_idx = fps(data.pos, ratio=0.001)
 
 # Get src and dest node indices
 dest_idx_knn, src_idx_knn = knn(x=data.pos, y=data.pos[fps_idx], k=32)
