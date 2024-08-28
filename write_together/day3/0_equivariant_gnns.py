@@ -145,7 +145,7 @@ def permutation_equivariance_unit_test(module, dataloader):
 
 
    out_2 = module(data.x, data.edge_index, data.edge_attr)
-   return all([torch.allclose(out_1[perm], out_2, atol=1e-04)])
+   return torch.allclose(out_1[perm], out_2, atol=1e-04)
 
 
 # +++++++++++++++++++ E(n) Equivariant GNN Layer +++++++++++++++++++
