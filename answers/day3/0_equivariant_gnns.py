@@ -167,58 +167,58 @@ class InvariantMPNNLayer(MessagePassing):
         return (f'{self.__class__.__name__}(emb_dim={self.emb_dim}, aggr={self.aggr})')
 
 
-class InvariantMPNNModel(MPNNModel):
-    def __init__(self, num_layers=4, emb_dim=64, in_dim=11, edge_dim=4, out_dim=1):
-        """Message Passing Neural Network model for graph property prediction
+    class InvariantMPNNModel(MPNNModel):
+        def __init__(self, num_layers=4, emb_dim=64, in_dim=11, edge_dim=4, out_dim=1):
+            """Message Passing Neural Network model for graph property prediction
 
-        This model uses both node features and coordinates as inputs, and
-        is invariant to 3D rotations and translations.
+            This model uses both node features and coordinates as inputs, and
+            is invariant to 3D rotations and translations.
 
-        Args:
-            num_layers: (int) - number of message passing layers `L`
-            emb_dim: (int) - hidden dimension `d`
-            in_dim: (int) - initial node feature dimension `d_n`
-            edge_dim: (int) - edge feature dimension `d_e`
-            out_dim: (int) - output dimension (fixed to 1)
-        """
-        super().__init__()
+            Args:
+                num_layers: (int) - number of message passing layers `L`
+                emb_dim: (int) - hidden dimension `d`
+                in_dim: (int) - initial node feature dimension `d_n`
+                edge_dim: (int) - edge feature dimension `d_e`
+                out_dim: (int) - output dimension (fixed to 1)
+            """
+            super().__init__()
 
-        # Linear projection for initial node features
-        # dim: d_n -> d
-        self.lin_in = torch.nn.Linear(in_dim, emb_dim)
+            # Linear projection for initial node features
+            # dim: d_n -> d
+            self.lin_in = torch.nn.Linear(in_dim, emb_dim)
 
-        # Stack of invariant MPNN layers
-        self.convs = torch.nn.ModuleList()
-        for layer in range(num_layers):
-            self.convs.append(InvariantMPNNLayer(emb_dim, edge_dim, aggr='add'))
+            # Stack of invariant MPNN layers
+            self.convs = torch.nn.ModuleList()
+            for layer in range(num_layers):
+                self.convs.append(InvariantMPNNLayer(emb_dim, edge_dim, aggr='add'))
 
-        # Global pooling/readout function `R` (mean pooling)
-        # PyG handles the underlying logic via `global_mean_pool()`
-        self.pool = global_mean_pool
+            # Global pooling/readout function `R` (mean pooling)
+            # PyG handles the underlying logic via `global_mean_pool()`
+            self.pool = global_mean_pool
 
-        # Linear prediction head
-        # dim: d -> out_dim
-        self.lin_pred = torch.nn.Linear(emb_dim, out_dim)
+            # Linear prediction head
+            # dim: d -> out_dim
+            self.lin_pred = torch.nn.Linear(emb_dim, out_dim)
 
-    def forward(self, data):
-        """
-        Args:
-            data: (PyG.Data) - batch of PyG graphs
+        def forward(self, data):
+            """
+            Args:
+                data: (PyG.Data) - batch of PyG graphs
 
-        Returns:
-            out: (batch_size, out_dim) - prediction for each graph
-        """
-        h = self.lin_in(data.x) # (n, d_n) -> (n, d)
+            Returns:
+                out: (batch_size, out_dim) - prediction for each graph
+            """
+            h = self.lin_in(data.x) # (n, d_n) -> (n, d)
 
-        for conv in self.convs:
-            # Note: here the conv layer takes 3D positions, which we previously were concatenating to the features
-            h = h + conv(h, data.pos, data.edge_index, data.edge_attr) # (n, d) -> (n, d)
+            for conv in self.convs:
+                # Note: here the conv layer takes 3D positions, which we previously were concatenating to the features
+                h = h + conv(h, data.pos, data.edge_index, data.edge_attr) # (n, d) -> (n, d)
 
-        h_graph = self.pool(h, data.batch) # (n, d) -> (batch_size, d)
+            h_graph = self.pool(h, data.batch) # (n, d) -> (batch_size, d)
 
-        out = self.lin_pred(h_graph) # (batch_size, d) -> (batch_size, 1)
+            out = self.lin_pred(h_graph) # (batch_size, d) -> (batch_size, 1)
 
-        return out.view(-1)
+            return out.view(-1)
     
 
 inv_layer = InvariantMPNNLayer(emb_dim=11, edge_dim=4, aggr="add")
@@ -240,7 +240,7 @@ def rot_trans_equivariance_unit_test(module, dataloader):
     t = torch.rand(3)
 
     # Rotate and translate the postitions 
-    data.pos = data.pos @ Q + t
+    data.pos = data.pos @ Q + t 
 
     # Forward pass on rotated + translated example
     out_2, pos_2 = module(data.x, data.pos, data.edge_index, data.edge_attr)
