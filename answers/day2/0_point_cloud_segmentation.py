@@ -1,116 +1,122 @@
-# ++++++++++++++ START OF EXERCISE 1  ++++++++++++++ 
+# ++++++++++++++ START OF EXERCISE 1  ++++++++++++++
 # Run the next cell in Colab to download the bunny mesh, uncomment the #-symbol
+# Download the bunny mesh (run this only once)
+# Download the bunny mesh (run this only once)
 #!wget https://graphics.stanford.edu/~mdfisher/Data/Meshes/bunny.obj
 
-# Get the bunny mesh
+# Load the bunny mesh
 bunny_mesh = o3d.io.read_triangle_mesh("bunny.obj")
+
 num_points = 30000
 
-def mesh2cloud(mesh_obj: o3d.geometry.TriangleMesh, num_points: int) -> np.array:
+
+# Sample points from the mesh
+def mesh2cloud(mesh_obj: o3d.geometry.TriangleMesh, num_points: int) -> np.ndarray:
     point_cloud = mesh_obj.sample_points_uniformly(number_of_points=num_points)
     return np.asarray(point_cloud.points)
 
+
 bunny_points = mesh2cloud(bunny_mesh, num_points)
 
-# Let's colour our bunny by assigning a unique colour to each point
-# The colour will change gradually along all 3 axis simultaneously
-colors = np.linspace(0, 1, num_points)
-bunny_points = np.concatenate([bunny_points, colors.reshape(-1, 1)], axis=-1)
+# Assign a scalar color value based on the x-axis (normalized to [0,1])
+x_min, x_max = bunny_points[:, 0].min(), bunny_points[:, 0].max()
+color_scalar = (bunny_points[:, 0] - x_min) / (x_max - x_min)  # (num_points,)
 
-# Rotation matricies around X, Y or Z-axis, theta given in radians
-def R_axis(theta, axis):
-    assert axis in ['x', 'y', 'z'], "Axis must be either x, y or z"
+
+# Rotate the bunny (XYZ only)
+def R_axis(theta: float, axis: str) -> np.ndarray:
+    """
+    Args:
+        theta: rotation angle in radians.
+        axis: axis of rotation.
+    Returns:
+        Rotation matrix.
+    """
     axis = axis.lower()
-    if axis == 'x':
-        return np.array([
-            [1, 0, 0],
-            [0, np.cos(theta), -np.sin(theta)],
-            [0, np.sin(theta), np.cos(theta)]
-      ] )
-    if axis == 'y':
-        return np.array([
-            [np.cos(theta), 0, np.sin(theta)],
-            [0, 1, 0],
-            [-np.sin(theta), 0, np.cos(theta)]
-        ])
-    if axis == 'z':
-        return np.array([
-            [np.cos(theta), -np.sin(theta), 0],
-            [np.sin(theta), np.cos(theta), 0],
-            [0, 0, 1]
-        ])
+    assert axis in ["x", "y", "z"], "Axis must be either x, y or z"
+    if axis == "x":
+        return np.array([[1, 0, 0], [0, np.cos(theta), -np.sin(theta)], [0, np.sin(theta), np.cos(theta)]])
+    if axis == "y":
+        return np.array([[np.cos(theta), 0, np.sin(theta)], [0, 1, 0], [-np.sin(theta), 0, np.cos(theta)]])
+    if axis == "z":
+        return np.array([[np.cos(theta), -np.sin(theta), 0], [np.sin(theta), np.cos(theta), 0], [0, 0, 1]])
 
 
-# Rotate the bunny, so it's looking good from the start :)
-bunny_points[:, :-1] = bunny_points[:, :-1] @ \
-    R_axis(-3 * np.pi / 4, axis='y') @ \
-    R_axis(-np.pi / 2, axis='x')
+rotated_bunny_points = bunny_points @ R_axis(-3 * np.pi / 4, axis="y") @ R_axis(-np.pi / 2, axis="x")
 
+# Attach the scalar color to the points
+original_bunny_points = np.concatenate([rotated_bunny_points, color_scalar.reshape(-1, 1)], axis=-1)
 
-# Visualization function
-def visualize_point_clouds(
-      points1: np.ndarray,
-      points2: np.ndarray,
-      title1: str,
-      title2: str,
-      show_both: bool=True
-  ):
-      fig = make_subplots(
-          rows=1, cols=2,
-          specs=[[{'type': 'scatter3d'}, {'type': 'scatter3d'}]],
-          subplot_titles=[title1, title2]
-      )
-
-      fig.add_trace(
-          go.Scatter3d(
-              x=points1[:, 0], y=points1[:, 1], z=points1[:, 2], 
-              mode='markers',
-              marker=dict(size=1.5, color=points1[:, -1], colorscale='Viridis'),
-              name=title1
-          ),
-          row=1, col=1
-      )
-
-      if show_both:
-          fig.add_trace(
-              go.Scatter3d(
-                  x=points2[:, 0], y=points2[:, 1], z=points2[:, 2], 
-                  mode='markers',
-                  marker=dict(size=1.5, color=points2[:, -1], colorscale='Viridis'),
-                  name=title2
-              ),
-              row=1, col=2
-          )
-
-      fig.update_layout(
-          scene1=dict(
-              xaxis=dict(visible=False),
-              yaxis=dict(visible=False),
-              zaxis=dict(visible=False),
-              aspectmode='data'
-          ),
-          scene2=dict(
-              xaxis=dict(visible=False),
-              yaxis=dict(visible=False),
-              zaxis=dict(visible=False),
-              aspectmode='data'
-          )
-      )
-
-      fig.show()
-
-# Let's permute our bunny but leave the coloring of each point unchanged
+# Permute only the coordinates
 permuted_indices = np.random.permutation(num_points)
-permuted_bunny_points = bunny_points[:, :-1][permuted_indices]
-permuted_bunny_points = np.concatenate([permuted_bunny_points, colors.reshape(-1, 1)], axis=-1)
-
-# Visualize both
-visualize_point_clouds(bunny_points, permuted_bunny_points, "Original Bunny", "Permuted Bunny", show_both=True)
-
-# ++++++++++++++ END OF EXERCISE 1  ++++++++++++++++ 
+permuted_bunny_points = original_bunny_points[:, :-1][permuted_indices]
+permuted_bunny_points = np.concatenate([permuted_bunny_points, color_scalar.reshape(-1, 1)], axis=-1)
 
 
-# ++++++++++++++ START OF EXERCISE 2  ++++++++++++++ 
+def visualize_point_clouds(points1: np.ndarray, points2: np.ndarray, title1: str, title2: str, show_both: bool = True):
+    fig = make_subplots(
+        rows=1, cols=2, specs=[[{"type": "scatter3d"}, {"type": "scatter3d"}]], subplot_titles=[title1, title2]
+    )
+
+    fig.add_trace(
+        go.Scatter3d(
+            x=points1[:, 0],
+            y=points1[:, 1],
+            z=points1[:, 2],
+            mode="markers",
+            marker=dict(
+                size=1.5,
+                color=points1[:, 3],
+                colorscale="Viridis",
+                cmin=0,
+                cmax=1,
+                colorbar=dict(title="Color (scalar)", len=0.7) if not show_both else None,
+            ),
+            name=title1,
+        ),
+        row=1,
+        col=1,
+    )
+
+    if show_both:
+        fig.add_trace(
+            go.Scatter3d(
+                x=points2[:, 0],
+                y=points2[:, 1],
+                z=points2[:, 2],
+                mode="markers",
+                marker=dict(
+                    size=1.5,
+                    color=points2[:, 3],
+                    colorscale="Viridis",
+                    cmin=0,
+                    cmax=1,
+                    colorbar=dict(title="Color (scalar)", len=0.7),
+                ),
+                name=title2,
+            ),
+            row=1,
+            col=2,
+        )
+
+    fig.update_layout(
+        scene1=dict(xaxis=dict(visible=False), yaxis=dict(visible=False), zaxis=dict(visible=False), aspectmode="data"),
+        scene2=dict(xaxis=dict(visible=False), yaxis=dict(visible=False), zaxis=dict(visible=False), aspectmode="data"),
+        margin=dict(l=0, r=0, t=40, b=0),
+        height=600,
+    )
+
+    fig.show()
+
+
+# Visualize the bunny!
+visualize_point_clouds(original_bunny_points, permuted_bunny_points, "Original bunny", "Permuted bunny")
+
+
+# ++++++++++++++ END OF EXERCISE 1  ++++++++++++++++
+
+
+# ++++++++++++++ START OF EXERCISE 2  ++++++++++++++
 
 # Create a small dataset
 fixed_points_transform = FixedPoints(num=10000, replace=False)
@@ -138,18 +144,20 @@ visualize(
     name2="BQ graph",
 )
 
-# ++++++++++++++ END OF EXERCISE 2  ++++++++++++++++ 
+# ++++++++++++++ END OF EXERCISE 2  ++++++++++++++++
 
 
-# ++++++++++++++ START OF EXERCISE 3  ++++++++++++++ 
+# ++++++++++++++ START OF EXERCISE 3  ++++++++++++++
 
 # Compose a series of rotations around all 3 axes
-sample_random_rotate = Compose([
-    FixedPoints(num=10_000, replace=False),
-    RandomRotate(degrees=30, axis=0),
-    RandomRotate(degrees=30, axis=1),
-    RandomRotate(degrees=30, axis=2),
-])
+sample_random_rotate = Compose(
+    [
+        FixedPoints(num=10_000, replace=False),
+        RandomRotate(degrees=30, axis=0),
+        RandomRotate(degrees=30, axis=1),
+        RandomRotate(degrees=30, axis=2),
+    ]
+)
 
 # Create the dataset
 rotated_test_dataset = TinyVKittiDataset(root="data/test/", size=1, transform=sample_random_rotate)
@@ -162,7 +170,7 @@ visualize(
     point_cloud_graph2=data_rotated,
     name1="Original Point Cloud",
     name2="Rotated Point Cloud",
-    show_both=True
+    show_both=True,
 )
 
 # Run inference and compute the accuracy
@@ -174,7 +182,8 @@ print(f"Test accurcy for the rotated point cloud: {test(rotated_loader)}")
 # ++++++++++++++ END OF EXERCISE 3  ++++++++++++++++
 
 
-# ++++++++++++++ START OF EXERCISE 4  ++++++++++++++ 
+# ++++++++++++++ START OF EXERCISE 4  ++++++++++++++
+
 
 class PPFPointNetPP(torch.nn.Module):
     def __init__(self, num_classes):
@@ -204,5 +213,6 @@ class PPFPointNetPP(torch.nn.Module):
         x, _, _, _ = self.fp1_module(*fp2_out, *sa0_out)
 
         return self.mlp(x)
+
 
 # ++++++++++++++ END OF EXERCISE 4  ++++++++++++++++
