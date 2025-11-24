@@ -74,7 +74,7 @@ class TinyVKittiDataset(Dataset):
         return len(self.processed_file_names)
 
     def get(self, idx):
-        data = torch.load(os.path.join(self.processed_dir, f"graph_{idx}.pt"))
+        data = torch.load(os.path.join(self.processed_dir, f"graph_{idx}.pt"), weights_only=False)
         return data
 
 
