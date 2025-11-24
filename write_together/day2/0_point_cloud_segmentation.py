@@ -199,26 +199,26 @@ class PointNetPP(torch.nn.Module):
         seed(12345)
         # Input channels account for both `pos` and node features.
         # Perform the downsampling and feature aggregation
-        # Sample 20% of input points, group them within the radius of 0.2 and encode the features into a 32-dim vector
-        self.sa1_module = SAModule(ratio=0.2, r=0.2, nn=MLP([3, 32, 32]))
+        # Sample 20% of input points, group them within the radius of 0.2 and encode the features into a 64-dim vector
+        self.sa1_module = SAModule(ratio=0.2, r=0.2, nn=MLP([3, 64, 64]))
         # Sample 25 % of the downsampled points, group within the radius of 0.4 (since the points are more sparse now)
-        # and encode them into a 64-dim vector
-        self.sa2_module = SAModule(ratio=0.25, r=0.4, nn=MLP([32 + 3, 32, 64]))
-        # Take each point positions and features, encode them into a 128-dim vector and then max-pool across all graphs
-        self.sa3_module = GlobalSAModule(MLP([64 + 3, 64, 128]))
+        # and encode them into a 128-dim vector
+        self.sa2_module = SAModule(ratio=0.25, r=0.4, nn=MLP([64 + 3, 64, 128]))
+        # Take each point positions and features, encode them into a 256-dim vector and then max-pool across all graphs
+        self.sa3_module = GlobalSAModule(MLP([128 + 3, 128, 256]))
 
         # Perform upsampling and feature propagation
         # Interpolate output features from sa3_module and concatenate with the sa2_module output features
-        # Input features are 128-dim from sa3_module and 64-dim from sa2_module
-        self.fp3_module = FPModule(2, MLP([128 + 64, 64]))
+        # Input features are 256-dim from sa3_module and 128-dim from sa2_module
+        self.fp3_module = FPModule(2, MLP([256 + 128, 128]))
         # Interpolate upsampled features from fp3_module and concatenate with sa1_module output features
-        # Input features are 64-dim from fp3_module and 32-dim from sa1_module
-        self.fp2_module = FPModule(3, MLP([64 + 32, 32]))
+        # Input features are 128-dim from fp3_module and 64-dim from sa1_module
+        self.fp2_module = FPModule(3, MLP([128 + 64, 64]))
         # Interpolate upsampled output features from fp2_module and encode them into a 128-dim vector
-        self.fp1_module = FPModule(3, MLP([32, 128]))
+        self.fp1_module = FPModule(3, MLP([64, 128]))
 
         # Apply the final MLP network to perform label segmentation for each point, using their propagated features
-        self.mlp = MLP([128, 64, num_classes], dropout=0.5, norm=None)
+        self.mlp = MLP([128, 64, num_classes], dropout=0.25, norm=None)
 
     def forward(self, data):
         sa0_out = (data.x, data.pos, data.batch)
