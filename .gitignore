@@ -7,10 +7,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Ignore day 2
-answers/day2
-write_together/day2
-
 # C extensions
 *.so
 
