@@ -32,7 +32,7 @@ Other resources can be found inside corresponding Colabs.
 - [Colab 1: Basics of graph theory](https://colab.research.google.com/drive/18Mn7Yc3M2TCjVQJYMeKJSZjulTHfYpf5?usp=sharing): Introduction to graphs and their basic properties.  
 - [Colab 2: Graph convolutions](https://colab.research.google.com/drive/16xkG0lqbatbbZeEWeO3rgxukeS3LOhFr?usp=sharing): Hands-on guide for graph convolutions.
 - [Colab 3: PyTorch Geometric and node level tasks](https://colab.research.google.com/drive/1XbJyHpLKk_ywqOOHuK8LIO5JO5H-joN8?usp=sharing): Introduction to PyG via semi-supervised node classification.
-- [Colab 4: Generalized message passing](https://colab.research.google.com/drive/1wJ93oNhvRZsJO_yl-foa_Q5PFk6LiWIC?usp=sharing): Generalized message passing algorithm.
+
 
 #### Day 2:
 
