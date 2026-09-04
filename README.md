@@ -34,13 +34,7 @@ Other resources can be found inside corresponding Colabs.
 - [Colab 3: PyTorch Geometric and node level tasks](https://colab.research.google.com/drive/1XbJyHpLKk_ywqOOHuK8LIO5JO5H-joN8?usp=sharing): Introduction to PyG via semi-supervised node classification.
 - [Colab 4: Generalized message passing](https://colab.research.google.com/drive/1wJ93oNhvRZsJO_yl-foa_Q5PFk6LiWIC?usp=sharing): Generalized message passing algorithm.
 
-
 #### Day 2:
-
-- [Colab 0 - Point cloud semantic segmentation](https://colab.research.google.com/drive/1Y8zBer1sCjX3aOa8e5T3opto54t-nL3v?usp=sharing): A tutorial on point 
- segmentation, using PointNet++. 
-
-#### Day 3:
 
 - [Colab 0 - Equivariant Graph Neural Networks](https://colab.research.google.com/drive/13PH-33bu5g0J-DvcfHgiFXiN9oXpIK-G?usp=sharing): Practical exercises
 for understanding invariance and equivariance in GNNs.
